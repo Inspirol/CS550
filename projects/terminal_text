@@ -1,0 +1,465 @@
+'''
+name: Sebastian Plunkett
+date: 9/22/2023
+sources: none
+reflection: TODO
+Honor Code: I have not given nor received any unauthorized aid on this assignment. -Sebastian Plunkett
+'''
+
+import math, random, time
+import numpy as np
+
+
+
+insults = [
+    'You are a smelly pirate hooker.',
+    'You are a cotton-headed ninny muggins.',
+    'You are a fart factory, slug-slimed sack of rat guts in cat vomit.',
+    'You are a festering, rotting, fly-covered pile of dog crap.',
+    'You are a spineless little worm deserving nothing but the profoundest contempt.',
+    'You are a degenerate, no-talent, idiotic, pathetic, white trash ball of failure.',
+    'I fart in your general direction.',
+    'I could walk in a field of cow poop, and you would still be the ugliest thing in sight.',
+]
+
+bribe = [
+    'A little birdie told me you were looking for some money.',
+    'I have a proposition for you.',
+    'I will give you $100,000 if you do me a favor.',
+    'Everyone needs a little extra liquidity.',
+    'I have a little extra cash lying around.',
+    'I have a little extra cash lying around.',
+]
+
+mug = [
+    'Give me your stuff!',
+    'Hand over your wallet.',
+    'I need your money.',
+    'Stick \'em up!',
+]
+
+welcome = [
+    'Welcome to Mob Boss.',
+    'You are a newly appointed mob boss in the city of New York.',
+    'Your goal is to survive and become the most powerful mob boss in the city',
+    'You will have to make decisions that will affect your reputation, your influence, and your money.',
+    'Good luck.',
+]
+
+intro = [
+    'You are a newly appointed mob boss in the city of New York.',
+    'Your goal is to survive and become the most powerful mob boss in the city',
+    'You will have to make decisions that will affect your reputation, your influence, and your money.',
+]
+
+new_day = [
+    'A new day has begun.',
+    'You have woken up in your bed.',
+    'What will you do today?',
+]
+
+new_day_decisions = [
+    'Grow your empire.',
+    'Party with the elite.',
+    'Go to bed.',
+]
+
+end_day = [
+    'You have decided to go to bed.',
+    'good night.',
+]
+
+event_box = {
+    'grow_your_empire.': [
+        {
+            "description": ['Your gang spots a rival gang member walking down the street.'],
+            "decisions": ['Kill him.', 'Mug him.', 'Bribe him.', 'Ignore him.'],
+            "results": [
+                    {'influence': -1, 'money': 0, 'cruelty': 1, 'response': ['You have killed the rival gang member.','He will not bother you again.']},
+                    {'influence': 0, 'money': 1, 'cruelty': 0, 'response': ['You have mugged the rival gang member.','You have gained $100,000.']},
+                    {'influence': 1, 'money': -1, 'cruelty': 0, 'response': ['You have bribed the rival gang member.','He has joined your gang.', 'You have lost $100,000.']},
+                    {'influence': -1, 'money': 0, 'cruelty': 0, 'response': ['You have ignored the rival gang member.', 'Your gang has lost respect for you.']}
+                ]
+        },
+        {
+            "description": ['You have the ability to expand your territory with a new building.'],
+            "decisions": ['Expand your territory.', 'Do not expand your territory.'],
+            "results": [
+                    {'influence': 1, 'money': -1, 'cruelty': 0, 'response': ['You have expanded your territory.','You have lost $100,000.']},
+                    {'influence': 0, 'money': 0, 'cruelty': 0, 'response': ['You have not expanded your territory.']}
+                ]
+        },
+        {
+            "description": ['A single mother is struggling to pay the loan shark, and asking you to forgive the debt'],
+            "decisions": ['Forgive the debt.', 'Do not forgive the debt.'],
+            "results": [
+                    {'influence': 1, 'money': -1, 'cruelty': -1, 'response': ['You have forgiven the debt.', 'You have lost $100,000.']},
+                    {'influence': 0, 'money': 0, 'cruelty': 1, 'response': ['You have not forgiven the debt.']}
+            ]
+        }
+    ],
+    'party_with_the_elite.': [
+        {
+            "description": ['You see a rival mob boss at the party.', 'He is alone.'],
+            "decisions": ['Kill him.', 'Mug him.', 'Invite him to your table.', 'Ignore him.'],
+            "results": [
+                {'influence': -1, 'money': 0, 'cruelty': 2, 'response': ['You have killed the rival mob boss.','He will not bother you again.']},
+                {'influence': 0, 'money': 3, 'cruelty': 0, 'response': ['You have mugged the rival mob boss.','You have gained $300,000.']},
+                {'influence': 1, 'money': 0, 'cruelty': -1, 'response': ['you have invited the mob boss to your table.', 'You have become friends with the mob boss.']},
+                {'influence': -1, 'money': 0, 'cruelty': 0, 'response': ['You have ignored the rival mob boss.', 'Your gang has lost respect for you.']}
+            ]
+        },
+        {
+            "description": ['You see a rival mob boss at the party.', 'He is with his bodyguards.'],
+            "decisions": ['Kill him.', 'Mug him.', 'Invite him to your table.', 'Ignore him.'],
+            "results": [
+                {'influence': -1, 'money': 0, 'cruelty': 0, 'response': ['You have attempted to kill the rival mob boss.', 'You have been killed by his bodyguards.']},
+                {'influence': 0, 'money': 0, 'cruelty': 0, 'response': ['You have attempted to mug the rival mob boss.', 'You have been killed by his bodyguards.']},
+                {'influence': 0, 'money': -1, 'cruelty': -1, 'response': ['You have invited the mob boss to your table.', 'You have become friends with the mob boss.', 'You have lost $100,000.']},
+                {'influence': -1, 'money': 0, 'cruelty': 0, 'response': ['You have ignored the rival mob boss.', 'Your gang has lost respect for you.']}
+            ]
+        },
+        {
+            "description": ['You find out that one of the waiters is an undercover cop.'],
+            "decisions": ['Kill him.', 'Bribe him.', 'Ignore him.'],
+            "results": [
+                {'influence': -1, 'money': 0, 'cruelty': 1, 'response': ['You have killed the undercover cop.','He will not bother you again.']},
+                {'influence': 4, 'money': -4, 'cruelty': 0, 'response': ['You have bribed the undercover cop.','He has joined your gang.', 'You have lost $400,000.']},
+                {'influence': 0, 'money': 0, 'cruelty': 0, 'response': ['You have ignored the undercover cop.']}
+            ]
+        },
+        {
+            "description": ['You see a drunk passerby exiting the party.'],
+            "decisions": ['kill him.', 'mug him.', 'ignore him.'],
+            "results": [
+                {'influence': -1, 'money': 0, 'cruelty': 2, 'response': ['You have killed the drunk passerby in cold blood.', 'He was secretly a part of the FBI.', "You are known amongst the FBI"]},
+                {'influence': 0, 'money': 1, 'cruelty': 0, 'response': ['You have mugged the drunk passerby.', 'You have gained $100,000.']},
+                {'influence': 0, 'money': 0, 'cruelty': 0, 'response': ['You have ignored the drunk passerby.']}
+            ]
+        }
+    ]
+}
+
+def random_list_element(list: list):
+    '''
+    Returns a random element from a list.
+    :param list: The list to choose from.
+    :return: A random element from the list.
+    '''
+    return list[random.randint(0, len(list) - 1)]
+
+def random_array(width, height, min, max):
+    '''
+    Generates a 2D array of random numbers.
+    :param width: The width of the array.
+    :param height: The height of the array.
+    :param min: The minimum number to generate.
+    :param max: The maximum number to generate.
+    :return: The generated array.
+    '''
+    array = []
+    for y in range(height):
+        array.append([])
+        for x in range(width):
+            array[y].append(random.randint(min, max))
+    return array
+
+def random_array_2d(width, height, min, max):
+    '''
+    Generates a 2D array of random numbers.
+    :param width: The width of the array.
+    :param height: The height of the array.
+    :param min: The minimum number to generate.
+    :param max: The maximum number to generate.
+    :return: The generated array.
+    '''
+    array = []
+    for y in range(height):
+        array.append([])
+        for x in range(width):
+            array[y].append(random.randint(min, max))
+    return array
+
+def ask(str):
+    '''
+    Asks the user for input with a prompt.
+    :param str: The prompt to ask the user.
+    :return: The user's input.
+    '''
+    try:
+        return input(str + '\n>>> ')
+    except ValueError:
+        print('Please enter a valid input. (string)')
+        return ask(str)
+
+def print_sequence(sequence: list, delay: float):
+    '''
+    Prints a list of strings.
+    :param sequence: The list of strings to print.
+    :param delay: The delay between each print.
+    '''
+    for i in sequence:
+        print(i)
+        time.sleep(delay)
+
+def ask_int(question:str):
+    '''
+    Asks the user for input with a prompt.
+    :param int: The prompt to ask the user.
+    :return: The user's input as an integer.'''
+    try:
+        return int(ask(question))
+    except ValueError:
+        print('Please enter a valid input. (int)')
+        return ask_int(question)
+
+def str_has(str: str, contains: str):
+    '''
+    if the string contains the substring
+    :param str: the string to search
+    :param contains: the substring to search for
+    :return: true if the substring is in the string
+    '''
+    return contains in str.lower()
+
+def str_has_all(str: str, contains: list):
+    '''
+    if the string contains all of the substrings
+    :param str: the string to search
+    :param contains: the substrings to search for
+    :return: true if the substrings are in the string'''
+    for contain in contains:
+        if not str_has(str, contain):
+            return False
+    return True
+
+def str_has_any(str: str, contains: list):
+    '''
+    if the string contains any of the substrings
+    :param str: the string to search
+    :param contains: the substrings to search for
+    :return: true if any of the substrings are in the string
+    '''
+    for contain in contains:
+        if str_has(str, contain):
+            return True
+    return False
+
+# def decision(question: str or int, answers: list):
+
+cruelty:int = 0
+influence:int = 0
+money:int = 0
+name:str = ''
+
+class Decision():
+    
+    def __init__(self, question: str, answers: list):
+        self.question = question
+        self.answers = answers
+        
+    def ask(self):
+        
+        answers = ''
+        
+        for i in range(len(self.answers)):
+            answers = answers  + " " + (f'{i + 1}: {self.answers[i]}')
+        res = ask_int(self.question + ' (' + answers + ")")
+        if res > len(self.answers):
+            print('Please enter a valid input.')
+            return self.ask()
+        return [res - 1, self.answers[res - 1]]
+    
+    
+class Event():
+    
+    def __init__(self, name: str, obj: object):
+        # print(obj)
+        self.name = name
+        self.description = obj['description']
+        self.decisions = Decision('What will you do?', obj['decisions'])
+        self.results = obj['results']
+        
+    def start(self):
+        print_sequence(self.description, 1.5)
+        res = self.decisions.ask()
+        return res
+    
+    def result(self, res: list):
+        consequences = self.results[res[0]]
+        print_sequence(consequences['response'], 1.5)
+        
+        globals()['cruelty'] += consequences['cruelty']
+        globals()['influence'] += consequences['influence']
+        globals()['money'] += consequences['money']
+        # return Player('Player', influence, money, cruelty)
+    
+    def run(self):
+        res = self.start()
+        return self.result(res)
+            
+
+
+class Day():
+    
+    def __init__(self, events: list):
+        self.events = []
+        # print(self.events)
+        
+    def start(self):
+        print_sequence(new_day, .5)
+        decision = Decision('', new_day_decisions)
+        i, a = decision.ask()
+        if a == 'Go to bed.'.lower():
+            return
+        event_amt = random.randint(0,3)
+        if event_amt == 0:
+            print_sequence(end_day, .5)
+            return
+        for i in range(event_amt):
+            ev = event_box[a.lower().replace(' ', '_')]
+            self.events.append(Event(a, random_list_element(ev)))
+            self.events[i].run()
+            
+    def end(self):
+                
+        print_sequence(end_day, .5)
+        # current player status:
+        print('Your current status: \n')
+        print(Player(influence, money, cruelty))
+        print('\n')
+        return
+    
+    def run(self):
+        self.start()
+        self.end()
+        
+
+class Game():
+    
+    def __init__(self, array: list):
+        print(array)
+        self.days = []
+        for day in array:
+            self.days.append(Day(day))
+        
+    def start(self):
+        print_sequence(intro, .5)
+        name = ask('What is your name?')
+        globals()['name'] = name
+        print(f'Hello {name}. Please enjoy staying alive.') 
+        print('\n')
+        print('Your current status: \n')
+        print(Player(influence, money, cruelty))
+        print('\n')
+        for day in self.days:
+            day.run()
+            
+    
+            
+
+class Player():
+    
+    def __init__(self, influence: int, money: int, cruelty: int):
+        self.name = globals()['name']
+        self.influence = influence
+        self.money = money
+        self.cruelty = cruelty
+        
+    def __str__(self):
+        extra = ''
+        if self.money < 0:
+            extra = '\n \nYou are broke.'
+        if self.cruelty > 10:
+            extra += '\n \nYou are a monster.'
+        if self.influence > 10:
+            extra += '\n \nYou are the most powerful mob boss in the city.'
+        if self.influence < 0:
+            extra += '\n \nYou have a bad reputation.'
+        if self.cruelty < 0:
+            extra += '\n \nYou are a nice mob boss.'
+        return f'Name: {self.name}\nInfluence: {self.influence * 10}\nMoney: {self.money * 100000}\nCruelty: {self.cruelty}' + extra
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    def __dict__(self):
+        return {
+            'Boss': self.name,
+            'influence': self.influence,
+            'money': self.money * 100000,
+            'cruelty': self.cruelty,
+        }
+    
+    def __eq__(self, other):
+        return self.__dict__() == other.__dict__()
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    
+    def __lt__(self, other):
+        return self.__dict__() < other.__dict__()
+    
+    def __gt__(self, other):
+        return self.__dict__() > other.__dict__()
+    
+    def __le__(self, other):
+        return self.__dict__() <= other.__dict__()
+    
+    def __ge__(self, other):
+        return self.__dict__() >= other.__dict__()
+    
+    def __add__(self, other):
+        return Player(
+            self.name,
+            self.influence + other.influence,
+            self.money + other.money,
+            self.cruelty + other.cruelty,
+        )
+    
+    def __sub__(self, other):
+        return Player(
+            self.name,
+            self.influence - other.influence,
+            self.money - other.money,
+            self.cruelty - other.cruelty,
+        )
+    
+    def __mul__(self, other):
+        return Player(
+            self.name,
+            self.influence * other.influence,
+            self.money * other.money,
+            self.cruelty * other.cruelty,
+        )
+    
+    def __truediv__(self, other):
+        return Player(
+            self.name,
+            self.influence / other.influence,
+            self.money / other.money,
+            self.cruelty / other.cruelty,
+        )
+    
+    def __floordiv__(self, other):
+        return Player(
+            self.name,
+            self.influence // other.influence,
+            self.money // other.money,
+            self.cruelty // other.cruelty,
+        )
+        
+
+def main():
+    
+    # print_sequence(welcome, .5)
+    
+    game = Game(random_array_2d(3, 10, 0, 10))
+    
+    game.start()
+    
+    
+
+
+if __name__ == '__main__':
+    main()
