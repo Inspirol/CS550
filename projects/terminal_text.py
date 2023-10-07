@@ -70,6 +70,8 @@ end_day = [
     'good night.',
 ]
 
+
+# events that the player experiences
 event_box = {
     'grow_your_empire.': [
         {
@@ -562,13 +564,14 @@ def str_has_any(str: str, contains: list):
 
 # def decision(question: str or int, answers: list):
 
+#player variables that change throughout the game
 cruelty:int = 0
 influence:int = 0
 money:int = 0
 name:str = ''
 
 class Decision():
-    
+    # decisions change the variables of the player
     def __init__(self, question: str, answers: list):
         self.question = question
         self.answers = answers
@@ -587,7 +590,7 @@ class Decision():
     
     
 class Event():
-    
+    # Each day has events that play out, with decisions that increase or decrease a score
     def __init__(self, name: str, obj: object):
         # print(obj)
         self.name = name
@@ -624,7 +627,8 @@ class Event():
 
 
 class Day():
-    
+    '''
+    Day class that runs the events and decisions'''
     def __init__(self, events: list):
         self.events = []
         # print(self.events)
@@ -665,6 +669,7 @@ class Day():
         print_sequence(new_day, .5)
         decision = Decision('', new_day_decisions)
         i, a = decision.ask()
+        # go to bed
         if a == 'Go to bed.'.lower():
             return
         event_amt = random.randint(1,3)
@@ -672,9 +677,11 @@ class Day():
             print_sequence(end_day, .5)
             return
         for i in range(event_amt):
+            # death events
             if self.encounter_death() and random.randint(0, 10) == 1:
                 ev = event_box['encounter'][self.encounter_death()]
             else:
+                # regular events
                 ev = event_box[a.lower().replace(' ', '_')]
 
             self.events.append(Event(a, random_list_element(ev)))
@@ -683,7 +690,7 @@ class Day():
                 return 'death'
             
     def end(self):
-                
+        #end of day sequence
         print_sequence(end_day, .5)
         # current player status:
         print('Your current status: \n')
@@ -694,6 +701,7 @@ class Day():
     def run(self):
         res = self.start()
         if res == 'death':
+            # death sequence and final score
             print_sequence(['You have died.', '', random_list_element(insults), '', 'Final Score', '', Player(influence, money, cruelty)], 1)
             return 'death'
         else:
@@ -709,6 +717,7 @@ class Game():
             self.days.append(Day(day))
         
     def start(self):
+        # intro print sequence
         print_sequence(intro, .5)
         name = ask('What is your name?')
         globals()['name'] = name
@@ -734,6 +743,7 @@ class Player():
         self.cruelty = cruelty
         
     def __str__(self):
+        # player status with extra text if you are broke, a monster, or the most powerful mob boss in the city
         extra = ''
         if self.money < 0:
             extra = '\n \nYou are broke.'
@@ -820,9 +830,10 @@ class Player():
 def main():
     
     # print_sequence(welcome, .5)
-    
+    # start the game with a random 2d array
     game = Game(random_array_2d(3, 10, 0, 10))
     
+    # start the game
     game.start()
     
     
