@@ -1,5 +1,18 @@
+'''
+name: Sebastian Plunkett
+date: 10/19/2023
+sources: None.
+reflection: This project really pulled me away from my comfort zone, where I had never really created text-based games or played minesweeper for
+that matter, though I really enjoyed it. I would say the main takaway point is that I want to focus on more is the readability of my code. I think
+I could have made this file a bit easier to digest, especially with the giant one line list comprehension in the adjacent blocks function. Nevertheless,
+I really enjoyed this project a lot.
+Honor Code: I have not given nor received any unauthorized aid on this assignment. -Sebastian Plunkett
+'''
+
 import math, random
 from typing import Any
+
+
 
 
 minesweeper_size = (12, 12)
@@ -8,10 +21,10 @@ class Block:
     '''
     the individual blocks that make up the grid
     '''
-    def __init__(self, x, y, is_mine):
+    def __init__(self, col, row, is_mine):
         
-        self.x = x
-        self.y = y
+        self.col = col
+        self.row = row
         self.is_mine = is_mine
         self.is_mine_selected = False
         self.is_flagged = False
@@ -60,23 +73,31 @@ class Grid:
         '''
         return self.grid
     
-    def get_block(self, x, y):
+    def get_block(self, col, row):
         '''
         returns the block at the given coordinates
         '''
-        return self.grid[x][y]
+        return self.grid[row][col]
     
-    def get_adjacent_blocks(self, x_pos, y_pos):
+    def get_adjacent_blocks(self, col, row):
         '''
         returns a list of the blocks adjacent to the given coordinates
         '''
-        return [self.grid[x][y] for x in range(x_pos-1, x_pos+2) for y in range(y_pos-1, y_pos+2) if x >= 0 and y >= 0 and x < self.size[0] and y < self.size[1]]
+        
+        return [self.get_block(x, y) for x in range(col - 1, col + 2) for y in range(row - 1, row + 2) if x >= 0 and y >= 0 and x < self.size[0] and y < self.size[1] and (x != col or y != row)]
+
     
     def get_adjacent_mines(self, x, y):
         '''
         returns the number of mines adjacent to the given coordinates
         '''
         return sum([block.is_mine for block in self.get_adjacent_blocks(x, y)])
+    
+    def check_win(self):
+        '''
+        checks if the player has won by revealing all blocks that are not mines
+        '''
+        return all([block.is_revealed for row in self.grid for block in row if not block.is_mine])
     
     def get_input(self, flag = False):
         '''
@@ -85,9 +106,9 @@ class Grid:
         if flag:
             try:
                 res = input("Enter a coordinate (x, y) to flag or unflag a block: ")
-                x, y = res.split(',')
-                x = int(x) - 1
-                y = int(y) - 1
+                col, row = res.split(',')
+                x = int(col) - 1
+                y = int(row) - 1
                 if x > self.size[0] or y > self.size[1] or x < 0 or y < 0:
                     print('Please enter a valid coordinate')
                     return self.get_input()
@@ -99,16 +120,19 @@ class Grid:
             res = input("Enter a coordinate (x, y), or type f to flag a block (r to show board, q to quit): ")
             
             if res == 'q':
+                # quits the game
                 print('Goodbye!')
                 exit()
             if res == 'r':
+                # shows the board
                 self.__str__()
                 return self.get_input()
             if res == 'f':
-                y, x = self.get_input(flag=True)
-                if self.get_block(x, y).is_flagged:
-                    self.get_block(x, y).is_flagged = False
-                else: self.get_block(x, y).is_flagged = True
+                # flags a block
+                col, row = self.get_input(flag=True)
+                if self.get_block(col, row).is_flagged:
+                    self.get_block(col, row).is_flagged = False
+                else: self.get_block(col, row).is_flagged = True
                 self.__str__()
                 return self.get_input()
             else:
@@ -129,45 +153,52 @@ class Grid:
         '''
         generates the grid
         '''
+        print('Generating grid...')
         if not self.size: return print('Please set a size for the grid.')
         self.grid = [[Block(i, j, 0) for i in range(self.size[0])] for j in range(self.size[1])]
         self.set_mines()
-        for y in range(self.size[1]):
-            for x in range(self.size[0]):
-                self.grid[x][y].adjacent_mines = self.get_adjacent_mines(x, y)
+        print('max size', self.size[0], self.size[1])
+        for row in self.grid:
+            for block in row:
+                block.adjacent_mines = self.get_adjacent_mines(block.col, block.row)
+                # print(x, y)
                 
     def set_size(self):
         '''
         sets the size of the grid
         '''
-        x = 0
-        y = 0
-        while x < 3 or x > 100:
+        col = 0
+        row = 0
+        while col < 3 or col > 100:
             try:
-                x = int(input('Enter a length greater than 3 and less than 100: '))
-                if x < 3 or x > 100:
+                col = int(input('Enter a length greater than 3 and less than 100: '))
+                if col < 3 or col > 100:
                     raise ValueError
             except ValueError:
                 print('Please enter a valid number')
-        while y < 3 or y > 100:
+        while row < 3 or row > 100:
             try:
-                y = int(input('Enter a height greater than 3 and less than 100: '))
-                if y < 3 or y > 100:
+                row = int(input('Enter a height greater than 3 and less than 100: '))
+                if row < 3 or row > 100:
                     raise ValueError
                 
             except ValueError:
                 print('Please enter a valid number')
-        print(f'Generating a {x}x{y} grid...')
-        self.size = (x, y)
+        print(f'Generating a {col}x{row} grid...')
+        self.size = (col, row)
         # self.generate_grid()
         
     def set_mines(self):
+        '''
+        Sets the mines on the grid randomly
+        '''
+        print(f'Generating mines...')
         for i in range(self.mines_num):
-            x = random.randint(0, self.size[0] - 1)
-            y = random.randint(0, self.size[1] - 1)
-            print('mine at', x + 1, y + 1)
-            self.grid[x][y].is_mine = True
-        
+            col = random.randint(0, self.size[0] - 1)
+            row = random.randint(0, self.size[1] - 1)
+            # UNCOMMENT TO SEE WHERE MINES ARE ON GRID. USEFUL FOR TESTING. X AND Y ARE ACCURATE TO THE GRID, NOT THE LIST
+            # print('mine at ('+str(col + 1)+","+ str(row + 1) + ')')
+            self.grid[row][col].is_mine = True
         
     def ask_mines(self):
         '''
@@ -189,7 +220,8 @@ class Grid:
                     if res == 'n':
                         break
             elif res == 'n':
-                self.mines_num = math.floor(self.size[0] * self.size[1] * .1)
+                self.mines_num = max(math.floor(self.size[0] * self.size[1] * .1), 1)
+                # print(f'Generating {self.mines_num} mines...')
             else:
                 raise ValueError
         except ValueError:
@@ -204,22 +236,35 @@ class Grid:
         self.set_size()
         self.ask_mines()
         self.generate_grid()
+        print('Starting game...')
+        print('Good luck!')
+        print('Coordinates are 1 indexed, so (1,1) is the top left corner. (1,2) is the block below that, etc.')
         self.__str__()
         while True:
-            y, x = self.get_input()
-            block = self.get_block(x, y)
+            # gets user input on action
+            col, row = self.get_input()
+            block = self.get_block(col, row)
             if block.is_mine:
+                # if the block is a mine, the game ends
                 block.is_mine_selected = True
                 self.__str__()
                 print('You hit a mine!')
                 print('Game over!')
                 break
             else:
+                # if the block is not a mine, it is revealed
                 block.is_revealed = True
                 if block.adjacent_mines == 0:
-                    for block in self.get_adjacent_blocks(x, y):
+                    for block in self.get_adjacent_blocks(col, row):
                         block.is_revealed = True
                 self.__str__()
+                if self.check_win():
+                    # if the player has won, the game ends
+                    print('You won!')
+                    print('Thank you for playing!')
+                    print('Goodbye!')
+                    break
+                
     
 
 
