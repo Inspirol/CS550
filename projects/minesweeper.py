@@ -5,7 +5,8 @@ sources: None.
 reflection: This project really pulled me away from my comfort zone, where I had never really created text-based games or played minesweeper for
 that matter, though I really enjoyed it. I would say the main takaway point is that I want to focus on more is the readability of my code. I think
 I could have made this file a bit easier to digest, especially with the giant one line list comprehension in the adjacent blocks function. Nevertheless,
-I really enjoyed this project a lot.
+I really enjoyed this project a lot. A lot of my thinking process was including the use of classes, which in the end I believe made my life easier in terms of block management,
+though I dont believe it was super necessary.
 Honor Code: I have not given nor received any unauthorized aid on this assignment. -Sebastian Plunkett
 '''
 
