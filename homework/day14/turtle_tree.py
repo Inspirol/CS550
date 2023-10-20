@@ -32,6 +32,6 @@ bob.setheading(90)
 # moving the turtle to the bottom of the screen to give space for the tree
 bob.goto(0, -200)
 bob.pendown()
-tree(bob, 7)
+tree(bob, 20)
 
 turtle.done()
