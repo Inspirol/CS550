@@ -67,7 +67,7 @@ def get_mandelbrot(dimx: int, dimy: int, max_iter: int = 100) -> Image:
     return img
 
 mandel = get_mandelbrot_zoom(dimx, dimy, (xmin, xmax), (ymin, ymax), max_iter=100)
-mandel.show()
+mandel.save('mandelbrot.png')
 
 
 
