@@ -10,37 +10,31 @@ max_depth = 5
 dimx = 1000
 dimy = 1000
 
-def circle_inversion(x, y, circle):
-    # circle is a tuple of (x, y, radius)
-    # return the inverted point
-    dist = math.sqrt((x - circle[0]) ** 2 + (y - circle[1]) ** 2)
-    if dist == 0:
-        return (x, y)
-    else:
-        return (circle[0] + (circle[0] - x) / dist * circle[2] ** 2, circle[1] + (circle[1] - y) / dist * circle[2] ** 2)
-    
-def draw_circle(draw, x, y, radius, color):
-    draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=color)
-    
-    
-def draw_fractal(draw, x, y, radius, depth, color, main_circles):
-    if depth == 0:
-        draw_circle(draw, x, y, radius, color)
-    else:
-        for i in range(num_main_circles):
-            new_x, new_y = circle_inversion(x, y, main_circles[i])
-            draw_fractal(draw, new_x, new_y, radius / 2, depth - 1, color, main_circles)
-            
-def main():
-    main_circles = []
-    for i in range(num_main_circles):
-        main_circles.append((random.randint(0, dimx), random.randint(0, dimy), main_circle_radius))
-    img = Image.new('RGB', (dimx, dimy), color = 'white')
+def get_color(depth: int) -> tuple:
+    return (0, 0, depth*255/max_depth%255)
+
+def get_circle(x: int, y: int, radius: int) -> tuple:
+    return (x-radius, y-radius, x+radius, y+radius)
+
+def get_random_circle(x: int, y: int, radius: int) -> tuple:
+    return (x+random.randint(-radius, radius), y+random.randint(-radius, radius), radius)
+
+def invert_circle(circle: tuple, dimx: int, dimy: int) -> tuple:
+    return (dimx-circle[2], dimy-circle[3], dimx-circle[0], dimy-circle[1])
+
+def get_fractal(depth: int, circle: tuple, dimx: int, dimy: int) -> Image:
+    img = Image.new('RGB', (dimx, dimy))
     draw = ImageDraw.Draw(img)
-    for i in tqdm(range(dimx)):
-        for j in range(dimy):
-            draw_fractal(draw, i, j, main_circle_radius, max_depth, 'black', main_circles)
-    img.show()
+    if depth == 0:
+        draw.ellipse(circle, fill=get_color(depth))
+        return img
+    else:
+        draw.ellipse(circle, fill='white')
+        for i in range(num_main_circles):
+            new_circle = get_random_circle(*circle)
+            img.paste(get_fractal(depth-1, new_circle, dimx, dimy), invert_circle(new_circle, dimx, dimy))
+        return img
     
-if __name__ == '__main__':
-    main()
+
+img = get_fractal(max_depth, (dimx//2, dimy//2, main_circle_radius), dimx, dimy)
+img.show()
