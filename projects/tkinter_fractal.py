@@ -1,79 +1,11 @@
-# circle fractal
-'''
-name: Sebastian Plunkett
-date: 11/17/2023
-sources: finishthehot for inversion geometry introduction.
-reflection: I never want to do geometry again. Ever. The amount of time I have spent validating if my math is correct via desmos
-scares me. Through this process, I suprisingly completely understand the math behind the inversion geometry, and I am very proud of that.
-I love the colors and how it all came together. This is probably one of my favorite projects I have done. This circle inversion fractal inverts circles around other circles, and then inverts those circles around other circles, and so on. The result is a beautiful fractal that is very pleasing to the eye. I am very proud of this project, and I hope you enjoy it as much as I do.
-Something that I added later was the offset feature, as added after review, and I enjoy it, as it lets you see the fractal from different perspectives.
-Please have fun tinkering with the class objects! Sorry I could not explain every little detail of the code, as it is technically dificult to explain, but I hope you enjoy it!
-Honor Code: I have not given nor received any unauthorized aid on this assignment. -Sebastian Plunkett
-'''
-
-import math
-import random
+import tkinter as tk
+from tkinter import ttk
+import customtkinter
 from PIL import Image, ImageDraw
+import math
 from tqdm import tqdm
 
-num_main_circles = 3
-main_circle_radius = 100
-max_depth = 20
-dimx = 4000
-dimy = 4000
-
-
-class Mandelbrot():
-    '''
-    creates a mandelbrot set'''
-
-    def get_z(self, c: complex, z: complex = 0, max_iter: int = 1000) -> complex:
-        for i in range(max_iter):
-            z = z**2 + c
-            if abs(z) > 2:
-                return i
-        return max_iter
-
-
-    def get_color(self, z: complex, max_iter: int = 100) -> tuple:
-        if z < max_iter:
-            return (int(z/max_iter*255)%255, 0, int(z * 255 / max_iter)%255)
-        elif z == max_iter:
-            return (255, 255, 255)
-        else:
-            return (0, 0, 0)
-            
-        
-    def get_mandelbrot_zoom(self, img, x_range, y_range, max_iter=1000):
-        '''
-        creates a mandelbrot set with a zoom
-        :param img: the image to draw on
-        :param x_range: the range of the x axis
-        :param y_range: the range of the y axis
-        :param max_iter: the maximum number of iterations'''
-        draw = ImageDraw.Draw(img)
-        for x in tqdm(range(dimx)):
-            cx = x/dimx*(x_range[1]-x_range[0])+x_range[0]
-            for y in range(dimy):
-                cy = y/dimy*(y_range[1]-y_range[0])+y_range[0]
-                c = complex(cx, cy)
-                z = self.get_z(c, max_iter=max_iter)
-                color = self.get_color(z, max_iter=max_iter)
-                draw.point((x, y), fill=color)
-        return img
-
-        
-    def get_mandelbrot(self, dimx: int, dimy: int, max_iter: int = 100) -> Image:
-        img = Image.new('RGB', (dimx, dimy))
-        draw = ImageDraw.Draw(img)
-        for x in range(dimx):
-            for y in range(dimy):
-                c = complex(x/dimx*3-2, y/dimy*3-1.5)
-                z = self.get_z(c, max_iter=max_iter)
-                color = self.get_color(z, max_iter=max_iter)
-                draw.point((x, y), fill=color)
-        return img
-
+dimx, dimy = 1000, 1000
 
 class CircleFractal():
     '''
@@ -373,18 +305,64 @@ class CircleFractal():
             draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=self.get_color(plot), outline='black')
             
             
-
-tri = CircleFractal(3, 300, 1, 40)
-quad = CircleFractal(4, 900, 1, 40)
-# mandel = Mandelbrot()
-
-img = Image.new('RGB', (dimx, dimy), color = 'white')
-img2 = Image.new('RGB', (dimx, dimy), color = 'white')
-img3 = Image.new('RGB', (dimx, dimy), color = 'white')
-tri.draw_plots(img)
-quad.draw_plots(img2)
-# mandel.get_mandelbrot_zoom(img3, (-2, 2), (-2, 2), max_iter=100)
-img.show()
-img2.show()
-# img3.show()
-
+            
+class FractalApp(tk.Tk):
+    
+    fractal_width:int = 1000
+    fractal_height:int = 1000
+    fractal_main_circles:int = 3
+    fractal_main_circle_radius:int = 100
+    fractal_depth:int = 40
+    label_font = ("Arial", 12)
+    label_color = "black"
+    
+    def __init__(self):
+        super().__init__()
+        self.title("Inverse Circle Fractal Generator")
+        self.geometry(f"{500}x{500}")
+        self.resizable(False, False)
+        self.create_widgets()
+        
+    def label(self, text, row, column):
+        label = customtkinter.CTkLabel(self, text=text, text_color=self.label_color)
+        label.grid(row=row, column=column)
+        return label
+    
+    def int_entry(self, row, column):
+        entry = customtkinter.CTkEntry(self)
+        entry.grid(row=row, column=column)
+        return entry
+        
+        
+    def button(self, text, row, column, command):
+        button = customtkinter.CTkButton(self, text=text, command=command)
+        button.grid(row=row, column=column)
+        
+    def create_widgets(self):
+        self.label("Number of Main Circles", 0, 0)
+        self.num_main_circles_value = self.int_entry(1, 0)
+        
+        self.label("Main Circle Radius", 0, 1)
+        self.main_circle_radii_value = self.int_entry(1, 1)
+        
+        self.label("Fractal Depth", 0, 2)
+        self.fractal_depth_value = self.int_entry(1, 2)
+        
+        self.button("Generate Fractal", 2, 0, self.generate_fractal)
+        
+    def generate_fractal(self):
+        try:
+            self.fractal_main_circles = int(self.num_main_circles_value.get())
+            self.fractal_main_circle_radius = int(self.main_circle_radii_value.get())
+            self.fractal_depth = int(self.fractal_depth_value.get())
+        except ValueError:
+            return
+        fractal = CircleFractal(self.fractal_main_circles, self.fractal_main_circle_radius, 1, self.fractal_depth)
+        img = Image.new('RGB', (self.fractal_width, self.fractal_height), color='white')
+        fractal.draw_plots(img)
+        img.show()        
+        
+        
+if __name__ == "__main__":
+    app = FractalApp()
+    app.mainloop()
