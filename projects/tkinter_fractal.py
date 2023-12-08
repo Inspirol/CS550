@@ -290,7 +290,7 @@ class CircleFractal():
         x, y = center
         return (int(x) % 255, int(y) % 255, int(radius) % 255)
         
-    def draw_plots(self, img: Image, offset: (int, int) = (0,0)):
+    def draw_plots(self, img: Image, width, height, offset: (int, int) = (0,0)):
         '''
         draws the plots on the image
         '''
@@ -300,8 +300,8 @@ class CircleFractal():
             center, radius = plot
             x, y = center
             # offset the center point to the center of the image
-            x += dimx / 2 + offset[0]
-            y += dimy / 2 + offset[1]
+            x += width / 2 + offset[0]
+            y += height / 2 + offset[1]
             draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=self.get_color(plot), outline='black')
             
             
@@ -321,48 +321,113 @@ class FractalApp(tk.Tk):
         self.title("Inverse Circle Fractal Generator")
         self.geometry(f"{500}x{500}")
         self.resizable(False, False)
+        
         self.create_widgets()
         
+        self.start_updates()
+        
+    def input_check(self):
+        for input in self.winfo_children():
+            if isinstance(input, customtkinter.CTkEntry):
+                try:
+                    int(input.get())
+                    input.configure(fg_color='green')
+                    # print("input good")
+                except:
+                    input.configure(fg_color='red')
+                    # print("input bad")
+        self.after(100, self.input_check)
+        
+    def start_updates(self):
+        self.after(100, self.input_check)
+        
+        
     def label(self, text, row, column):
+        '''
+        Creates a label within the selected row and column'''
         label = customtkinter.CTkLabel(self, text=text, text_color=self.label_color)
         label.grid(row=row, column=column)
         return label
     
-    def int_entry(self, row, column):
+    def entry(self, row, column):
+        '''
+        Creates an input entry within the selected row and column'''
         entry = customtkinter.CTkEntry(self)
         entry.grid(row=row, column=column)
+        return entry
+    
+    def input(self, text, row, column):
+        '''
+        Creates a label and an input entry within the selected row and column'''
+        self.label(text, row, column)
+        entry = self.entry(row + 1, column)
         return entry
         
         
     def button(self, text, row, column, command):
+        '''
+        Creates a button within the selected row and column'''
         button = customtkinter.CTkButton(self, text=text, command=command)
         button.grid(row=row, column=column)
         
+    def checkbox(self, row, column):
+        checkbox = customtkinter.CTkCheckBox(self)
+        checkbox.grid(row=row, column=column)
+        return checkbox
+
+    def input_checkbox(self, text, row, column):
+        self.label(text, row, column)
+        checkbox = self.checkbox(row +1, column)
+        return checkbox
+        
+    def image_size(self, row, column):
+        self.fractal_width_value = self.input("Width", row, column)
+        self.label("By:", row, column + 1)
+        self.fractal_height_value = self.input("Height", row, column + 2)
+        
     def create_widgets(self):
-        self.label("Number of Main Circles", 0, 0)
-        self.num_main_circles_value = self.int_entry(1, 0)
+        # self.label("Number of Main Circles", 0, 0)
+        self.num_main_circles_value = self.input("Number of Main Circles", 0,0)
         
-        self.label("Main Circle Radius", 0, 1)
-        self.main_circle_radii_value = self.int_entry(1, 1)
+        # self.label("Main Circle Radius", 0, 1)
+        self.main_circle_radii_value = self.input("Main Circle Radius", 0,1)
         
-        self.label("Fractal Depth", 0, 2)
-        self.fractal_depth_value = self.int_entry(1, 2)
+        # self.label("Fractal Depth", 0, 2)
+        self.fractal_depth_value = self.input("Fractal Depth", 0, 2)
         
-        self.button("Generate Fractal", 2, 0, self.generate_fractal)
+        self.image_size(2, 0)
+        
+        self.save_file_value = self.input_checkbox("Save File?", 3, 1)
+        
+        self.button("Generate Fractal", 5, 1, self.generate_fractal)
+    
+    def error_message(self, message):
+        '''
+        Creates and error message for the production of farmaciutacle produects within the society of verbose earthquaekqs'''
+        self.label(message, 6, 0)
+        
         
     def generate_fractal(self):
         try:
             self.fractal_main_circles = int(self.num_main_circles_value.get())
             self.fractal_main_circle_radius = int(self.main_circle_radii_value.get())
             self.fractal_depth = int(self.fractal_depth_value.get())
+            self.fractal_width = int(self.fractal_width_value.get())
+            self.fractal_height = int(self.fractal_height_value.get())
+            self.save_file = int(self.save_file_value.get())
         except ValueError:
+            self.error_message("Please enter a valid number")
             return
         fractal = CircleFractal(self.fractal_main_circles, self.fractal_main_circle_radius, 1, self.fractal_depth)
         img = Image.new('RGB', (self.fractal_width, self.fractal_height), color='white')
-        fractal.draw_plots(img)
-        img.show()        
+        fractal.draw_plots(img, self.fractal_width, self.fractal_height)
+        if self.save_file == True:
+            img.save()
+        else:
+            img.show()        
         
         
 if __name__ == "__main__":
     app = FractalApp()
     app.mainloop()
+    
