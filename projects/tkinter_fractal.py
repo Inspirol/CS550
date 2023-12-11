@@ -5,7 +5,16 @@ from PIL import Image, ImageDraw
 import math
 from tqdm import tqdm
 
-dimx, dimy = 1000, 1000
+# circle fractal
+'''
+name: Sebastian Plunkett
+date: 12/11/2023
+sources: None
+reflection: This was a great project to get introduced to tkinter and python GUI. most of the code I make with python is run without any interface, so it was fun to figure out new things 
+and learn how to use tkinter. By playing around with it, I found out that the GUI could be instanced as a child of the class, which made it easier to organize the code. I also learned how to use
+the grid system to organize the widgets. Using some advice gotten by my dorm, I also added in some colors to the inputs, to let the user know if they messed something up, and an error message for good measure.
+Honor Code: I have not given nor received any unauthorized aid on this assignment. -Sebastian Plunkett
+'''
 
 class CircleFractal():
     '''
@@ -315,18 +324,37 @@ class FractalApp(tk.Tk):
     fractal_depth:int = 40
     label_font = ("Arial", 12)
     label_color = "black"
+    grid_columns = 3
+    grid_rows = 5
     
     def __init__(self):
         super().__init__()
         self.title("Inverse Circle Fractal Generator")
-        self.geometry(f"{500}x{500}")
+        # set the size of the window
+        self.geometry(f"{500}x{200}")
         self.resizable(False, False)
-        
+        # setup the grid and buttons
         self.create_widgets()
-        
+        # start the update loop
         self.start_updates()
+        # evenly space out 3 columns
+        for i in range(self.grid_columns):
+            self.grid_columnconfigure(i, weight=1)
+            
+        # evenly space out 5 rows
+        for i in range(self.grid_rows):
+            self.grid_rowconfigure(i, weight=1)
         
     def input_check(self):
+        '''
+        checks if the inputs are valid
+        
+        if the input is valid, then the background color will be green
+        
+        else the background color will be red
+        
+        this function is called every 100 milliseconds
+        '''
         for input in self.winfo_children():
             if isinstance(input, customtkinter.CTkEntry):
                 try:
@@ -339,13 +367,16 @@ class FractalApp(tk.Tk):
         self.after(100, self.input_check)
         
     def start_updates(self):
+        '''
+        starts the update loop
+        '''
         self.after(100, self.input_check)
         
         
-    def label(self, text, row, column):
+    def label(self, text, row, column, params={}):
         '''
         Creates a label within the selected row and column'''
-        label = customtkinter.CTkLabel(self, text=text, text_color=self.label_color)
+        label = customtkinter.CTkLabel(self, text=text, text_color=self.label_color, **params)
         label.grid(row=row, column=column)
         return label
     
@@ -387,44 +418,47 @@ class FractalApp(tk.Tk):
         
     def create_widgets(self):
         # self.label("Number of Main Circles", 0, 0)
-        self.num_main_circles_value = self.input("Number of Main Circles", 0,0)
+        self.label('Inverse Circle Fractal Generator', 0, 1,{'font':("Arial", 16)})
+        
+        self.num_main_circles_value = self.input("Number of Main Circles", 1,0)
         
         # self.label("Main Circle Radius", 0, 1)
-        self.main_circle_radii_value = self.input("Main Circle Radius", 0,1)
+        self.main_circle_radii_value = self.input("Main Circle Radius", 1,1)
         
         # self.label("Fractal Depth", 0, 2)
-        self.fractal_depth_value = self.input("Fractal Depth", 0, 2)
+        self.fractal_depth_value = self.input("Fractal Depth", 1, 2)
         
-        self.image_size(2, 0)
+        self.image_size(3, 0)
         
-        self.save_file_value = self.input_checkbox("Save File?", 3, 1)
+        # self.save_file_value = self.input_checkbox("Save File?", 3, 1)
         
-        self.button("Generate Fractal", 5, 1, self.generate_fractal)
+        self.button("Generate Fractal", 4, 1, self.generate_fractal)
     
     def error_message(self, message):
         '''
-        Creates and error message for the production of farmaciutacle produects within the society of verbose earthquaekqs'''
-        self.label(message, 6, 0)
+        Creates an error message for the user
+        '''
+        self.label(message, 0, 1)
         
         
     def generate_fractal(self):
         try:
+            # get the values from the inputs
             self.fractal_main_circles = int(self.num_main_circles_value.get())
             self.fractal_main_circle_radius = int(self.main_circle_radii_value.get())
             self.fractal_depth = int(self.fractal_depth_value.get())
             self.fractal_width = int(self.fractal_width_value.get())
             self.fractal_height = int(self.fractal_height_value.get())
-            self.save_file = int(self.save_file_value.get())
         except ValueError:
-            self.error_message("Please enter a valid number")
+            # if the values are not integers, then show an error message
+            self.error_message("Please enter valid numbers for all inputs")
             return
+        # create the fractal using the values from the inputs
         fractal = CircleFractal(self.fractal_main_circles, self.fractal_main_circle_radius, 1, self.fractal_depth)
         img = Image.new('RGB', (self.fractal_width, self.fractal_height), color='white')
+        # draw the fractal on the image
         fractal.draw_plots(img, self.fractal_width, self.fractal_height)
-        if self.save_file == True:
-            img.save()
-        else:
-            img.show()        
+        img.show()        
         
         
 if __name__ == "__main__":
