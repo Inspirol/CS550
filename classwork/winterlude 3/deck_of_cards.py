@@ -1,4 +1,4 @@
-import random, math, getpass
+import random, math, getpass, time
 
 class Card:
     
@@ -85,6 +85,7 @@ class Player:
 class Game:
     
     turn_per_deal = 3
+    players: list[Player]
     
     def __init__(self, players):
         self.deck = Deck()
@@ -109,23 +110,28 @@ class Game:
             print('-'*20)
             print('Dealing turn {}'.format(dealing_turn))
             print('-'*20)
-            print('All players:')
-            for player in self.players:
-                print(player)
-                for i in range(player.hand.cards):
-                    print("{}: {}".format(player.name, player.hand.cards[i])) 
-                print(f'card slots: {player.card_slots_per_deal}')
-                print('-'*20)
-            print('-'*20)
             # if dealing turn is even, deal
             if dealing_turn % self.turn_per_deal == 0 and dealing_turn != 0:
                 self.deal()
                 dealing_turn += 1
                 continue
+            print('All players:')
+            print('-'*20)
             for player in self.players:
+                print(player)
+                for i in range(len(player.hand.cards)):
+                    print("{}".format(player.hand.cards[i])) 
+                print(f'card slots: {player.card_slots_per_deal}')
                 print('-'*20)
+            print('Players now choose a card to play')
+            print('-'*20)
+            for player in self.players:
                 self.player_turn(player)
                 if len(player.hand.cards) == 0:
+                    print('-'*20)
+                    print("{} has no cards left and is out of the game".format(player.name))
+                    print('-'*20)
+                    time.sleep(1)
                     self.players.remove(player)
             if len(self.players) == 1:
                 
@@ -168,9 +174,12 @@ class Game:
         print('Turns over')
         print('-'*20)
         print("The table:")
+        time.sleep(1)
         for player in self.players:
             print("{}: {}".format(player.name, player.played_cards[-1]))
+            time.sleep(1)
         # get the lowest card value, and remove the number of cards the player can have by one
+        time.sleep(3)
         lowest_card = self.get_lowest_card([player.played_cards[-1] for player in self.players])
         for player in self.players:
             if player.played_cards[-1] == lowest_card:
@@ -178,13 +187,14 @@ class Game:
                 print('-'*20)
                 print("{} has lost a card slot for the remaining deals".format(player.name))
                 print('-'*20)
+                time.sleep(1)
         
-        print('All players:')
-        print('-'*20)
-        for player in self.players:
-            print(player)
-            print(f'card slots: {player.card_slots_per_deal}')
-            print('-'*20)
+        # print('All players:')
+        # print('-'*20)
+        # for player in self.players:
+        #     print(player)
+        #     print(f'card slots: {player.card_slots_per_deal}')
+        #     print('-'*20)
         print('-'*20)
         print('Next turn')
         print('-'*20)
