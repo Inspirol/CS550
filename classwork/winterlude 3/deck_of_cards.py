@@ -93,11 +93,53 @@ class Game:
         self.players = []
         for player in players:
             self.players.append(Player(player))
+        self.set_turn_per_deal()
+            
+    def set_turn_per_deal(self):
+        self.turn_per_deal = round(len(self.players) / 1.5)
             
     def deal(self):
         for player in self.players:
             for i in range(player.card_slots_per_deal):
                 player.draw(self.deck)
+                
+                
+    def print_slow(self, text):
+        for char in text:
+            print(char, end='', flush=True)
+            time.sleep(0.05)
+        print() 
+            
+    def intro(self):
+        
+        self.print_slow('Now playing game with {} players'.format(len(self.players)))
+        self.print_slow('')
+        self.print_slow('Each player starts with {} card slots'.format(self.players[0].card_slots_per_deal))
+        self.print_slow('')
+        self.print_slow('Players will be dealt cards every {} turns'.format(self.turn_per_deal))
+        self.print_slow('')
+        self.print_slow('The amount of cards dealt will be equal to the amount of card slots each player has')
+        self.print_slow('')
+        self.print_slow('The player with the lowest card will lose a card slot for the remaining deals')
+        self.print_slow('')
+        self.print_slow('A player is eliminated when they have no card slots left')
+        self.print_slow('')
+        self.print_slow('The last player standing wins')
+            
+    
+    def skip_intro(self):
+        try:
+            skip_intro = input("Skip intro? (y/n) ")
+            if skip_intro == 'y':
+                return True
+            elif skip_intro == 'n':
+                return False
+            else:
+                raise ValueError("Must be 'y' or 'n'")
+        except ValueError as e:
+            print(e)
+            return self.skip_intro()
+    
             
     def play(self):
         
@@ -106,38 +148,47 @@ class Game:
         
         dealing_turn = 0
         
+        if not self.skip_intro():
+            self.intro()
+        
+        self.print_slow('')
+        self.print_slow(f'Players: {", ".join([player.name for player in self.players])}')
+        self.print_slow('')
+        self.print_slow(f'drawing cards every {self.turn_per_deal} turns')
+        
         while len(self.players) > 1:
             print('-'*20)
-            print('Dealing turn {}'.format(dealing_turn))
-            print('-'*20)
+            self.print_slow('Dealing turn {}'.format(dealing_turn))
+            self.print_slow('')
+            
             # if dealing turn is even, deal
             if dealing_turn % self.turn_per_deal == 0 and dealing_turn != 0:
                 self.deal()
-                dealing_turn += 1
-                continue
-            print('All players:')
-            print('-'*20)
+            self.print_slow('All players:')
+            self.print_slow('')
             for player in self.players:
                 print(player)
                 for i in range(len(player.hand.cards)):
-                    print("{}".format(player.hand.cards[i])) 
+                    self.print_slow("{}".format(player.hand.cards[i])) 
                 print(f'card slots: {player.card_slots_per_deal}')
                 print('-'*20)
-            print('Players now choose a card to play')
+            self.print_slow('Players now choose a card to play')
             print('-'*20)
             for player in self.players:
-                self.player_turn(player)
+                
                 if len(player.hand.cards) == 0:
                     print('-'*20)
                     print("{} has no cards left and is out of the game".format(player.name))
                     print('-'*20)
                     time.sleep(1)
                     self.players.remove(player)
+                self.player_turn(player)
             if len(self.players) == 1:
                 
                 self.end_game()
                 break
             self.turn_result()
+            dealing_turn += 1
             
             
     def __str__(self):
@@ -154,12 +205,13 @@ class Game:
             return self.player_choice_input(player)
     
     def player_turn(self, player):
-        print(player)
-        print("Your hand:")
+        print(f'{player.name}\'s turn')
         for i, card in enumerate(player.hand.cards):
             print("{}: {}".format(i + 1, card))            
         choice = self.player_choice_input(player)
         player.play(player.hand.cards[choice])
+        print('-'*5)
+        time.sleep(1)
         
     def get_lowest_card(self, cards: list[Card]):
         lowest_card = cards[0]
@@ -176,7 +228,7 @@ class Game:
         print("The table:")
         time.sleep(1)
         for player in self.players:
-            print("{}: {}".format(player.name, player.played_cards[-1]))
+            self.print_slow("{}: {}".format(player.name, player.played_cards[-1]))
             time.sleep(1)
         # get the lowest card value, and remove the number of cards the player can have by one
         time.sleep(3)
