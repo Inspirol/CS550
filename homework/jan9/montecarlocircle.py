@@ -63,7 +63,7 @@ class simulation:
                 self.num_in_circle += 1
                 
     def results(self):
-        return self.num_in_circle / self.num_trials
+        return (self.num_in_circle / self.num_trials) * 4
     
     def clear(self):
         self.num_in_circle = 0
@@ -83,4 +83,22 @@ def run_simulations(width, height, num_trials, num_simulations):
     print(average(results))
         
 if __name__ == "__main__":
-    run_simulations(1, 1, 10, 10)
+    print('running simulations')
+    print('100')
+    run_simulations(1, 1, 100, 10)
+    print('1000')
+    run_simulations(1, 1, 1000, 10)
+    print('10000')
+    run_simulations(1, 1, 10000, 10)
+    print('100000')
+    run_simulations(1, 1, 100000, 10)
+    print('1000000')
+    run_simulations(1, 1, 1000000, 10)
+    
+    print('this looks like it is approaching pi')
+    
+    print('horizontal asymptote')
+    
+    print('i think this works because the more trials you run, the more accurate the simulation is')
+    
+    print('when each trial is random between 0 and 1, and the circle limit is pi, most of the time the simulation will be under pi')
