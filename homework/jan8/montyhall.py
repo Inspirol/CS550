@@ -47,3 +47,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+    
+    # because the probability of getting the prize is 1/3, and the probability of getting the prize after changing the choice is 2/3, the change decision is better
+    
+    # since you move the choice after the initial guess, which is 1/3, and after they removed the door, its better to change.
