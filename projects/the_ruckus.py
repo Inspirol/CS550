@@ -91,3 +91,5 @@ def sentence_length(poem):
 print(stanza_length(poem), 'characters per stanza')
 
 print(sentence_length(poem), 'characters per sentence')
+
+# beginning to plot data and start finding relationships
