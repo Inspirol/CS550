@@ -35,6 +35,18 @@ poem = [
 
 # statistical analysis on the poem
 
+def filter_stanza(stanza: str):
+    #filter any punctuation and numbers
+    return ''.join([c for c in stanza if c.isalpha() or c == ' ']).lower()
+
+def words_in_line(stanza: str):
+    # split the line into words
+    return filter_stanza(stanza).split()
+
+def sort_pattern_by_frequency(patterns: dict):
+    # sort patterns by frequency
+    return sorted(patterns.items(), key=lambda x: x[1], reverse=True)
+
 # total lines
 def total_lines(poem):
     return len(poem)
@@ -93,3 +105,35 @@ print(stanza_length(poem), 'characters per stanza')
 print(sentence_length(poem), 'characters per sentence')
 
 # beginning to plot data and start finding relationships
+
+def rhyme_patterns(poem):
+    patterns = {}
+    for line in poem:
+        if len(line) == 0:
+            continue
+        # last three characters in line
+        pattern = filter_stanza(line)[-3:]
+        if pattern in patterns:
+            patterns[pattern] += 1
+        else:
+            patterns[pattern] = 1
+    return patterns
+
+print(rhyme_patterns(poem))
+
+def end_word_patterns(poem):
+    patterns = {}
+    for line in poem:
+        if len(line) == 0:
+            continue
+        # last word in line
+        words = words_in_line(line)
+        for word in words:
+            pattern = word[-3:]
+            if pattern in patterns:
+                patterns[pattern] += 1
+            else:
+                patterns[pattern] = 1
+    return sort_pattern_by_frequency(patterns)
+
+print(end_word_patterns(poem))
