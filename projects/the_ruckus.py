@@ -1,3 +1,9 @@
+import warnings
+from gensim.models import Word2Vec
+import gensim
+from nltk.tokenize import sent_tokenize, word_tokenize
+warnings.filterwarnings('ignore')
+
 poem = [
     "On the top of a hill on the Island of Zort",
     "Lived a bird called the Ruckus, whose favorite sport",
@@ -137,3 +143,73 @@ def end_word_patterns(poem):
     return sort_pattern_by_frequency(patterns)
 
 print(end_word_patterns(poem))
+
+# check meter of poem
+
+vowels = ['a', 'e', 'i', 'o', 'u', 'y']
+
+def count_syllables(word: str):
+    count = 0
+    if word[0] in vowels:
+        count += 1
+    for i in range(1, len(word)):
+        if word[i] in vowels and word[i-1] not in vowels:
+            count += 1
+    if word.endswith('e'):
+        count -= 1
+    if count == 0:
+        count += 1
+    return count
+
+def get_syllables_in_stanza(stanza):
+    syllables = {}
+    for line in stanza:
+        if len(line) == 0:
+            continue
+        words = words_in_line(line)
+        for word in words:
+            if word in syllables:
+                continue
+            else:
+                s = count_syllables(word)
+                if s in syllables:
+                    syllables[s] += 1
+                else:
+                    syllables[s] = 1
+    return syllables
+
+print([get_syllables_in_stanza(stanza) for stanza in poem])
+
+def get_syllables_in_poem(poem):
+    syllables = {}
+    for line in poem:
+        if len(line) == 0:
+            continue
+        words = words_in_line(line)
+        for word in words:
+            if word in syllables:
+                continue
+            else:
+                s = count_syllables(word)
+                if s in syllables:
+                    syllables[s] += 1
+                else:
+                    syllables[s] = 1
+    return syllables
+
+print(get_syllables_in_poem(poem))
+
+stoplist = set('for a of the and to in'.split(' '))
+
+text = [[word for word in document.lower().split() if word not in stoplist]
+        for document in poem]
+
+from collections import defaultdict
+frequency = defaultdict(int)
+for text in text:
+    for token in text:
+        frequency[token] += 1
+
+model1 = Word2Vec([poem])
+
+print(model1.wv.most_similar([('snargled!', 'he')]))
