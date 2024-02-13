@@ -2,6 +2,7 @@ import warnings
 from gensim.models import Word2Vec
 import gensim
 from nltk.tokenize import sent_tokenize, word_tokenize
+import pronouncing
 warnings.filterwarnings('ignore')
 
 poem = [
@@ -41,13 +42,13 @@ poem = [
 
 # statistical analysis on the poem
 
-def filter_stanza(stanza: str):
+def filter_line(line: str):
     #filter any punctuation and numbers
-    return ''.join([c for c in stanza if c.isalpha() or c == ' ']).lower()
+    return ''.join([c for c in line if c.isalpha() or c == ' ']).lower()
 
-def words_in_line(stanza: str):
+def words_in_line(line: str):
     # split the line into words
-    return filter_stanza(stanza).split()
+    return filter_line(line).split()
 
 def sort_pattern_by_frequency(patterns: dict):
     # sort patterns by frequency
@@ -76,7 +77,7 @@ print(sentence_ending_punctuation(poem))
 
 # relationship between the sentence and its length and stanzas and its length
 
-def stanza_length(poem):
+def line_length(poem):
     length = {}
     for line in poem:
         if len(line) == 0:
@@ -87,28 +88,37 @@ def stanza_length(poem):
             length[len(line)] = 1
     return length
 
+print(line_length(poem), 'characters per stanza')
+
 def sentence_length(poem):
-    end_terms = ['.', '?', '!']
-    length = {}
+    end_terms = ['.', '?', '!' ]
+    lengths = []
     sentence_builder = ''
     for line in poem:
         if len(line) == 0:
             continue
         for char in line:
             if char in end_terms:
-                if len(sentence_builder) in length:
-                    length[len(sentence_builder)] += 1
-                else:
-                    length[len(sentence_builder)] = 1
-                sentence_builder = ''
+                if len(sentence_builder) > 0:
+                    lengths.append(len(sentence_builder))
+                    sentence_builder = ''
             else:
                 sentence_builder += char
-    return length
+    return lengths
         
         
-print(stanza_length(poem), 'characters per stanza')
 
 print(sentence_length(poem), 'characters per sentence')
+
+def sentence_length_words(poem):
+    lengths = []
+    for line in poem:
+        if len(line) == 0:
+            continue
+        lengths.append(len(words_in_line(line)))
+    return lengths
+
+print(sentence_length_words(poem), 'words per sentence')
 
 # beginning to plot data and start finding relationships
 
@@ -118,7 +128,7 @@ def rhyme_patterns(poem):
         if len(line) == 0:
             continue
         # last three characters in line
-        pattern = filter_stanza(line)[-3:]
+        pattern = filter_line(line)[-3:]
         if pattern in patterns:
             patterns[pattern] += 1
         else:
@@ -129,6 +139,7 @@ print(rhyme_patterns(poem))
 
 def end_word_patterns(poem):
     patterns = {}
+    exclude = set('for a of the and to in'.split(' '))
     for line in poem:
         if len(line) == 0:
             continue
@@ -136,6 +147,8 @@ def end_word_patterns(poem):
         words = words_in_line(line)
         for word in words:
             pattern = word[-3:]
+            if pattern in exclude:
+                continue
             if pattern in patterns:
                 patterns[pattern] += 1
             else:
@@ -150,54 +163,38 @@ vowels = ['a', 'e', 'i', 'o', 'u', 'y']
 
 def count_syllables(word: str):
     count = 0
-    if word[0] in vowels:
-        count += 1
-    for i in range(1, len(word)):
-        if word[i] in vowels and word[i-1] not in vowels:
-            count += 1
-    if word.endswith('e'):
-        count -= 1
-    if count == 0:
-        count += 1
+    if len(word) == 0:
+        return count
+    phones = pronouncing.phones_for_word(word)
+    if len(phones) > 0:
+        count = pronouncing.syllable_count(phones[0])
     return count
 
-def get_syllables_in_stanza(stanza):
-    syllables = {}
-    for line in stanza:
-        if len(line) == 0:
-            continue
-        words = words_in_line(line)
-        for word in words:
-            if word in syllables:
-                continue
-            else:
-                s = count_syllables(word)
-                if s in syllables:
-                    syllables[s] += 1
-                else:
-                    syllables[s] = 1
+def get_syllables_in_line(line):
+    syllables = []
+    for word in words_in_line(line):
+        syllables.append(count_syllables(word))
+        
     return syllables
 
-print([get_syllables_in_stanza(stanza) for stanza in poem])
-
 def get_syllables_in_poem(poem):
-    syllables = {}
+    syllables = []
     for line in poem:
         if len(line) == 0:
             continue
-        words = words_in_line(line)
-        for word in words:
-            if word in syllables:
-                continue
-            else:
-                s = count_syllables(word)
-                if s in syllables:
-                    syllables[s] += 1
-                else:
-                    syllables[s] = 1
+        syllables.append(get_syllables_in_line(line))
     return syllables
 
 print(get_syllables_in_poem(poem))
+
+print([sum(i) for i in get_syllables_in_poem(poem)])
+
+def get_stressed_syllables_in_poem(poem):
+    syllables = []
+    for line in poem:
+        if len(line) == 0:
+            continue
+    return syllables
 
 stoplist = set('for a of the and to in'.split(' '))
 
